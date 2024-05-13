@@ -24,12 +24,13 @@ M.load = function(callback)
     local cwd = vim.fn.getcwd()
     local cmd = rust_config.coverage_command
     cmd = interp(cmd, { cwd = cwd })
-    local stdout = ""
+    local stdout = {}
     local stderr = ""
+
     vim.fn.jobstart(cmd, {
         on_stdout = vim.schedule_wrap(function(_, data, _)
             for _, line in ipairs(data) do
-                stdout = stdout .. line
+                table.insert(stdout, line)
             end
         end),
         on_stderr = vim.schedule_wrap(function(_, data, _)
@@ -40,9 +41,11 @@ M.load = function(callback)
         on_exit = vim.schedule_wrap(function()
             if #stderr > 0 then
                 vim.notify(stderr, vim.log.levels.ERROR)
-                return
             end
-            callback(util.lcov_to_table(stdout))
+
+            if #stdout > 0 then
+                callback(util.lcov_to_table(stdout))
+            end
         end),
     })
 end

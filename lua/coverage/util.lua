@@ -41,7 +41,7 @@ M.new_file_meta = function()
     }
 end
 
---- Parses an lcov report from path into files.
+--- Parses an lcov report into files.
 --- @param lcov table<string>
 --- @param files table<string, FileCoverage>
 local parse_lcov = function(lcov, files)
@@ -125,14 +125,14 @@ end
 
 
 --- Parses a generic report into a files table.
---- @param path Path|string
---- @param parser fun(path:Path|string, files:table<string, FileCoverage>)
+--- @param lcov Path|table<string>
+--- @param parser fun(lcov:Path|table<string>, files:table<string, FileCoverage>)
 --- @return CoverageData
-M.report_to_table = function(path, parser)
+M.report_to_table = function(lcov, parser)
     --- @type table<string, FileCoverage>
     local files = {}
 
-    parser(path, files)
+    parser(lcov, files)
 
     --- @type CoverageSummary
     local totals = {
@@ -160,7 +160,7 @@ M.lcov_file_to_table = function(path)
 end
 
 --- Parses an lcov into a table,
---- @param lcov string
+--- @param lcov table<string>
 M.lcov_to_table = function(lcov)
     return M.report_to_table(lcov, parse_lcov)
 end

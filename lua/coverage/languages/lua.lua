@@ -15,7 +15,7 @@ M.load = function(callback)
     if not p:exists() then
         vim.notify("No coverage file exists.", vim.log.levels.INFO)
     end
-    callback(util.lcov_to_table(p))
+    callback(util.lcov_file_to_table(p))
 end
 
 return M

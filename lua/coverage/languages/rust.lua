@@ -74,8 +74,8 @@ M.summary = function(json_data)
     end
     totals.coverage = (
         (totals.statements + totals.branches - totals.missing - totals.partial)
-            / (totals.statements + totals.branches)
-        ) * 100.0
+        / (totals.statements + totals.branches)
+    ) * 100.0
     return {
         files = files,
         totals = totals,
@@ -95,11 +95,6 @@ M.load = function(callback)
     local rust_config = config.opts.lang.rust
     local cwd = vim.fn.getcwd()
     local cmd = rust_config.coverage_command
-    if rust_config.project_files_only then
-        for _, pattern in ipairs(rust_config.project_files) do
-            cmd = cmd .. " --keep-only '" .. pattern .. "'"
-        end
-    end
     cmd = interp(cmd, { cwd = cwd })
     local stdout = ""
     local stderr = ""
@@ -119,7 +114,7 @@ M.load = function(callback)
                 vim.notify(stderr, vim.log.levels.ERROR)
                 return
             end
-            util.safe_decode(stdout, callback)
+            callback(util.lcov_to_table(stdout))
         end),
     })
 end

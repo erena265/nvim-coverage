@@ -42,9 +42,9 @@ M.new_file_meta = function()
 end
 
 --- Parses an lcov report from path into files.
---- @param path Path
+--- @param lcov table<string>
 --- @param files table<string, FileCoverage>
-local lcov_parser = function(path, files)
+local parse_lcov = function(lcov, files)
     --- Current file
     --- @type string|nil
     local cfile = nil
@@ -52,7 +52,7 @@ local lcov_parser = function(path, files)
     --- @type FileCoverage|nil
     local cmeta = nil
 
-    for _, line in ipairs(path:readlines()) do
+    for _, line in ipairs(lcov) do
         if line:match("end_of_record") and cmeta ~= nil and cfile ~= nil then
             -- Commit the current file
             cmeta.summary["excluded_lines"] = 0
@@ -116,9 +116,17 @@ local lcov_parser = function(path, files)
     end
 end
 
---- Parses a generic report into a files table.
+--- Parses an lcov report from path into files.
 --- @param path Path
---- @param parser fun(path:Path, files:table<string, FileCoverage>)
+--- @param files table<string, FileCoverage>
+local lcov_parser = function(path, files)
+    parse_lcov(path:readlines(), files)
+end
+
+
+--- Parses a generic report into a files table.
+--- @param path Path|string
+--- @param parser fun(path:Path|string, files:table<string, FileCoverage>)
 --- @return CoverageData
 M.report_to_table = function(path, parser)
     --- @type table<string, FileCoverage>
@@ -147,8 +155,14 @@ end
 --- Parses a lcov files into a table,
 --- see http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php for spec
 --- @param path Path
-M.lcov_to_table = function(path)
+M.lcov_file_to_table = function(path)
     return M.report_to_table(path, lcov_parser)
+end
+
+--- Parses an lcov into a table,
+--- @param lcov string
+M.lcov_to_table = function(lcov)
+    return M.report_to_table(lcov, parse_lcov)
 end
 
 --- Parses a cobertura file into a table,
@@ -157,7 +171,7 @@ M.cobertura_to_table = function(path, path_mappings)
     local cobertura_parser = require("coverage.parsers.corbertura")
 
     return M.report_to_table(path, function(p, f)
-      return cobertura_parser(p, f, path_mappings or {})
+        return cobertura_parser(p, f, path_mappings or {})
     end)
 end
 
@@ -166,17 +180,17 @@ end
 --- if it is a list, it tries all files, till one is found
 --- in case of a single file, just return it.
 M.get_coverage_file = function(file_configuration)
-  if type(file_configuration) == 'function' then
-    return file_configuration()
-  elseif type(file_configuration) == 'table' then
-     for _,v in ipairs(file_configuration) do
-       if Path:new(v):exists() then
-         return v
-       end
-     end
-  else
-    return file_configuration
-  end
+    if type(file_configuration) == 'function' then
+        return file_configuration()
+    elseif type(file_configuration) == 'table' then
+        for _, v in ipairs(file_configuration) do
+            if Path:new(v):exists() then
+                return v
+            end
+        end
+    else
+        return file_configuration
+    end
 end
 
 return M

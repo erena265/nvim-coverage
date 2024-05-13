@@ -32,7 +32,7 @@ M.load_lcov = function(file, place)
             end)
         end
 
-        local result = util.lcov_to_table(p)
+        local result = util.lcov_file_to_table(p)
 
         -- Since we don't know the actual language, use the default common
         -- summary and sign_list.
